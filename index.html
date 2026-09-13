@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finite Mathematics 1 - End of Term Examination</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .matrix-box {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-left: 2px solid #3b82f6;
+            border-right: 2px solid #3b82f6;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: 600;
+            background-color: #0f172a;
+            color: #38bdf8;
+        }
+        .timer-progress {
+            transition: width 1s linear;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-500 selection:text-white">
+
+    <header class="bg-slate-800 border-b border-slate-700 shadow-md sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg font-bold shadow-md">
+                    <i class="fa-solid fa-calculator text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight text-slate-100">FINITE MATHEMATICS 1</h1>
+                    <p class="text-xs text-slate-400">End of Term Examination • A.Y. 2026-2027</p>
+                </div>
+            </div>
+            <div id="userBadge" class="hidden text-right">
+                <p id="badgeStudentName" class="text-sm font-semibold text-blue-400"></p>
+                <p class="text-xs text-slate-400">Status: <span id="statusTag" class="text-emerald-400 font-medium">In Progress</span></p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Custom Anti-Cheat Modal -->
+    <div id="cheatModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border-2 border-red-500 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
+            <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-xl font-bold text-red-400 mb-2">CHEATING / TAB SWITCH DETECTED!</h3>
+            <p class="text-slate-300 text-sm mb-4">
+                Leaving the app or switching tabs is strictly prohibited during the examination.
+            </p>
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-red-900 mb-5 text-red-300 font-semibold text-sm">
+                Warning Strike <span id="strikeCount">1</span> / 2
+            </div>
+            <button onclick="dismissCheatWarning()" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition shadow-lg">
+                I Understand & Return to Exam
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmSubmitModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
+            <div class="w-14 h-14 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-100 mb-2">Submit Examination?</h3>
+            <p id="confirmSubmitText" class="text-slate-300 text-sm mb-6">
+                Are you sure you want to submit your answers now? Once submitted, you cannot edit your responses.
+            </p>
+            <div class="flex items-center space-x-3">
+                <button onclick="closeConfirmModal()" class="w-1/2 py-3 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-xl transition">
+                    Cancel
+                </button>
+                <button onclick="executeFinalSubmission()" class="w-1/2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition shadow-lg">
+                    Yes, Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Notification/Alert Modal -->
+    <div id="notificationModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
+            <div id="notifIconBox" class="w-14 h-14 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i id="notifIcon" class="fa-solid fa-circle-info"></i>
+            </div>
+            <h3 id="notifTitle" class="text-xl font-bold text-slate-100 mb-2">Notice</h3>
+            <p id="notifMessage" class="text-slate-300 text-sm mb-6"></p>
+            <button onclick="closeNotificationModal()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-lg">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-4xl mx-auto w-full px-4 py-6 flex-grow">
+
+        <!-- VIEW 1: REGISTRATION -->
+        <section id="registrationView" class="bg-slate-800 rounded-2xl border border-slate-700 shadow-xl p-6 md:p-8 max-w-xl mx-auto">
+            <div class="text-center mb-6">
+                <span class="inline-block px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-xs font-semibold mb-2">
+                    Student Authentication
+                </span>
+                <h2 class="text-2xl font-bold text-slate-100">Exam Registration</h2>
+                <p class="text-slate-400 text-sm mt-1">Please enter your official details to start the examination.</p>
+            </div>
+
+            <form id="signupForm" onsubmit="handleSignup(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                        Full Name (Format: Surname, First Name M.I.) *
+                    </label>
+                    <input type="text" id="studentName" required 
+                        placeholder="e.g. Canoza, Marc Eris R."
+                        class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
+                    <p class="text-xs text-slate-400 mt-1">Example format: <span class="text-blue-400">Canoza, Marc Eris R.</span></p>
+                </div>
+
+                <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-xs text-amber-300 space-y-2">
+                    <p class="font-semibold text-amber-400"><i class="fa-solid fa-circle-info mr-1"></i> Examination Rules & Instructions:</p>
+                    <ul class="list-disc list-inside space-y-1 text-slate-300">
+                        <li>50 questions will be randomly drawn from the item bank.</li>
+                        <li><strong>45 seconds timer per question.</strong> Unanswered items auto-advance.</li>
+                        <li><strong>Single attempt only.</strong> Once submitted, you cannot retake.</li>
+                        <li><strong>Anti-Cheat Active:</strong> Switching apps or changing tabs triggers security warnings.</li>
+                    </ul>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg transition duration-200 flex items-center justify-center space-x-2">
+                    <span>Begin Examination</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </section>
+
+        <!-- VIEW 2: EXAM CORE -->
+        <section id="examView" class="hidden space-y-6">
+            <!-- Timer & Progress Header -->
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 p-4 shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-3 w-full md:w-auto">
+                    <span class="bg-blue-600/20 text-blue-400 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider">
+                        Question <span id="currentQuestionNum">1</span> / 50
+                    </span>
+                    <div class="flex-grow md:w-48 bg-slate-900 rounded-full h-2.5 overflow-hidden">
+                        <div id="overallProgressBar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <!-- Per-Question Countdown Timer -->
+                <div class="flex items-center space-x-3 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700 w-full md:w-auto justify-center">
+                    <i class="fa-solid fa-clock text-amber-400 animate-pulse"></i>
+                    <span class="text-xs text-slate-400 uppercase font-bold">Item Time:</span>
+                    <span id="timerText" class="text-xl font-bold font-mono text-amber-400">45s</span>
+                </div>
+            </div>
+
+            <!-- Item Timer Progress Bar -->
+            <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                <div id="itemTimerBar" class="bg-amber-400 h-full w-full timer-progress"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 shadow-xl p-6 md:p-8">
+                <div class="mb-6">
+                    <h3 id="questionText" class="text-lg md:text-xl font-medium text-slate-100 leading-relaxed">
+                        <!-- Dynamic Question Text -->
+                    </h3>
+                </div>
+
+                <!-- Options Grid -->
+                <div id="optionsContainer" class="space-y-3">
+                    <!-- Dynamic Options -->
+                </div>
+            </div>
+
+            <!-- Question Navigation Controls -->
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 p-4 shadow-md flex items-center justify-between">
+                <button id="prevBtn" onclick="navigateQuestion(-1)" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-xl transition text-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span>Previous</span>
+                </button>
+
+                <button id="nextBtn" onclick="navigateQuestion(1)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition text-sm flex items-center space-x-2">
+                    <span>Next</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+                <button id="submitBtn" onclick="promptSubmitExam()" class="hidden px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition text-sm shadow-lg">
+                    Submit Exam
+                </button>
+            </div>
+        </section>
+
+        <!-- VIEW 3: RESULTS SUMMARY -->
+        <section id="resultsView" class="hidden space-y-6 max-w-2xl mx-auto">
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl p-6 md:p-8 text-center space-y-6">
+                <div class="w-20 h-20 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-4xl shadow-inner">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-100">Examination Completed!</h2>
+                    <p id="resultStudentName" class="text-blue-400 font-medium mt-1"></p>
+                    <p class="text-xs text-slate-400 mt-1">Your response has been recorded and submitted.</p>
+                </div>
+
+                <!-- Score Board -->
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                    <div class="p-3">
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Final Score</p>
+                        <p id="finalScore" class="text-3xl font-extrabold text-emerald-400 mt-1">0 / 50</p>
+                    </div>
+                    <div class="p-3">
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Percentage</p>
+                        <p id="finalPercentage" class="text-3xl font-extrabold text-blue-400 mt-1">0%</p>
+                    </div>
+                    <div class="p-3 col-span-2 md:col-span-1">
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Time Taken</p>
+                        <p id="finalTimeTaken" class="text-2xl font-bold text-amber-400 mt-2">0m 0s</p>
+                    </div>
+                </div>
+
+                <!-- Cloud Submission Status -->
+                <div id="cloudStatusBox" class="p-3 rounded-xl border text-xs font-semibold flex items-center justify-center space-x-2 bg-slate-900 border-slate-700 text-slate-300">
+                    <i class="fa-solid fa-spinner fa-spin text-blue-400"></i>
+                    <span id="cloudStatusText">Sending score to Google Sheet...</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-800 border-t border-slate-700 py-3 text-center text-xs text-slate-500">
+        Finite Mathematics 1 • Bunsuran National High School • Secured Examination System
+    </footer>
+
+    <script>
+        // Hardcoded Google Apps Script Web App Endpoint
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHQ12yKJVPS5Wlo4KFGn-I9IkmWO1A5FxBQbfyezMY7zVkMntyFldM3LucTXWmTE3q/exec";
+
+        // Full 60-Question Item Bank
+        const QUESTION_BANK = [
+            { id: 1, question: "Which matrix has only one row?", options: ["Column matrix", "Row matrix", "Square matrix", "Rectangular matrix"], answer: 1 },
+            { id: 2, question: "Translate (2,5) using vector [3,-2].", options: ["(5,7)", "(5,3)", "(-1,3)", "(1,7)"], answer: 1 },
+            { id: 3, question: "Why can matrices only be added when they have the same order?", options: ["Their determinants must be equal.", "Corresponding entries must exist.", "Their rows must contain zeros.", "Their diagonals must match."], answer: 1 },
+            { id: 4, question: "Student A claims AB = BA for all matrices. Student B disagrees. Which analysis is correct?", options: ["Student A is correct.", "Student B is correct", "Both are correct.", "Neither is correct."], answer: 1 },
+            { id: 5, question: "Which matrix contains only zeros?", options: ["Zero matrix", "Scalar matrix", "Identity matrix", "Triangular matrix"], answer: 0 },
+            { id: 6, question: "Dilate (3,4) by a scale factor of 2.", options: ["(6,8)", "(9,12)", "(1.5,2)", "(5,6)"], answer: 0 },
+            { id: 7, question: "A matrix satisfies A<sup>T</sup> = A. What type of matrix is it?", options: ["Symmetric", "Nilpotent", "Boolean", "Skew-symmetric"], answer: 0 },
+            { id: 8, question: "A student claims that all square matrices are identity matrices.", options: ["True because all square matrices have equal rows and columns.", "True because every square matrix has ones on the main diagonal.", "False because some square matrices are not identity matrices.", "False because square matrices must be rectangular."], answer: 2 },
+            { id: 9, question: "Determine the order of a matrix with 3 rows and 2 columns.", options: ["2×3", "3×2", "3×3", "2×2"], answer: 1 },
+            { id: 10, question: "What is the additive identity in matrix operations?", options: ["Identity matrix", "Scalar matrix", "Zero matrix", "Boolean matrix"], answer: 2 },
+            { id: 11, question: "A student reflected (3,5) across the x-axis and obtained (-3,5). Analyze the error.", options: ["Reflected across y-axis", "Swapped coordinates", "Applied dilation", "Rotated the point"], answer: 0 },
+            { id: 12, question: "Why is translational symmetry called a sliding symmetry?", options: ["The figure rotates.", "The figure reflects.", "The figure enlarges.", "The figure repeats through translation."], answer: 3 },
+            { id: 13, question: "If A + X = 0, solve for X.", options: ["A", "0", "A<sup>T</sup>", "-A"], answer: 3 },
+            { id: 14, question: "Which matrix has entries consisting only of 0s and 1s?", options: ["Scalar matrix", "Boolean matrix", "Identity matrix", "Diagonal matrix"], answer: 1 },
+            { id: 15, question: "An Escher tessellation shows birds repeating without gaps. Which transformation principle makes this possible?", options: ["Congruent shapes fit together repeatedly.", "Shapes increase proportionally in size.", "Shapes change area at each repetition.", "Figures become different polygons."], answer: 0 },
+            { id: 16, question: "Why does a dilation fail to qualify as a rigid transformation?", options: ["It changes orientation.", "It changes coordinates.", "It changes size.", "It changes position."], answer: 2 },
+            { id: 17, question: "Determine whether a 2×3 matrix can be multiplied by a 3×4 matrix.", options: ["No", "Yes", "Only if square", "Only if symmetric"], answer: 1 },
+            { id: 18, question: "A student states that dilation preserves both size and shape.", options: ["Incorrect because dimensions remain unchanged.", "Incorrect because dimensions are multiplied by a scale factor.", "Correct when the figure is enlarged.", "Correct whenever the center is the origin."], answer: 1 },
+            { id: 19, question: "Which matrix has ones on its principal diagonal and zeros elsewhere?", options: ["Scalar matrix", "Zero matrix", "Identity matrix", "Row matrix"], answer: 2 },
+            { id: 20, question: "Dilate (8,2) by a scale factor of ½.", options: ["(16,4)", "(8,1)", "(4,1)", "(2,8)"], answer: 2 },
+            { id: 21, question: "A matrix satisfies A<sup>T</sup> = -A. What type of matrix is it?", options: ["Symmetric", "Scalar", "Skew-symmetric", "Identity"], answer: 2 },
+            { id: 22, question: "Compare AB and BA for two given matrices and obtain different answers. What conclusion follows?", options: ["Multiplication is impossible.", "Matrix multiplication is commutative.", "Matrix multiplication is generally noncommutative.", "Matrices must be square."], answer: 2 },
+            { id: 23, question: "Identify the variable matrix.", options: ["<span class='matrix-box'>[8; 1]</span>", "<span class='matrix-box'>[x; y]</span>", "<span class='matrix-box'>[2 3; 1 -1]</span>", "Augmented matrix"], answer: 1 },
+            { id: 24, question: "What symbol represents the Golden Ratio?", options: ["θ", "α", "Φ", "π"], answer: 2 },
+            { id: 25, question: "Why can a regular pentagon not tessellate by itself?", options: ["Its interior angle does not evenly divide 360°.", "Its side lengths are not congruent.", "Its perimeter exceeds neighboring polygons.", "Its vertices cannot form straight lines."], answer: 0 },
+            { id: 26, question: "Why must tessellations use isometries?", options: ["They preserve size and shape.", "They increase area.", "They remove angles.", "They create circles."], answer: 0 },
+            { id: 27, question: "Rotate (3,1) by 180° about the origin.", options: ["(-3,-1)", "(3,-1)", "(-1,3)", "(1,3)"], answer: 0 },
+            { id: 28, question: "Which design would be considered a tessellation?", options: ["Repeating shapes with small gaps", "Repeating shapes with overlapping regions", "Repeating shapes covering a surface completely", "Repeating shapes of changing sizes"], answer: 2 },
+            { id: 29, question: "What matrix operation interchanges rows and columns?", options: ["Addition", "Multiplication", "Transposition", "Dilation"], answer: 2 },
+            { id: 30, question: "A student is using Gaussian Elimination to solve a system of equations. Which matrix form should be obtained before back-substitution?", options: ["Identity matrix", "Zero matrix", "Row echelon form", "Diagonal matrix"], answer: 2 },
+            { id: 31, question: "A decorative border design repeats through translation and a 180° rotation. Which property of frieze patterns is illustrated?", options: ["Glide reflection", "Rotational symmetry", "Reflection symmetry", "Scale symmetry"], answer: 1 },
+            { id: 32, question: "A sunflower has 34 spirals in one direction and 55 in the other. What observation best explains these numbers?", options: ["They are multiples of 10.", "They are consecutive Fibonacci numbers.", "They are prime numbers.", "They are factors of 360."], answer: 1 },
+            { id: 33, question: "Find 2A if A = <span class='matrix-box'>[2 1; 3 4]</span>", options: ["<span class='matrix-box'>[4 2; 6 8]</span>", "<span class='matrix-box'>[2 2; 3 8]</span>", "<span class='matrix-box'>[4 1; 6 4]</span>", "<span class='matrix-box'>[2 1; 6 8]</span>"], answer: 0 },
+            { id: 34, question: "Which polygon cannot tessellate by itself?", options: ["Triangle", "Square", "Hexagon", "Pentagon"], answer: 3 },
+            { id: 35, question: "A matrix is both diagonal and has identical diagonal entries. Analyze its classification.", options: ["Boolean", "Scalar", "Nilpotent", "Orthogonal"], answer: 1 },
+            { id: 36, question: "Why are Fibonacci numbers associated with sunflower spirals?", options: ["They produce rectangular designs.", "They often appear in natural growth patterns.", "They eliminate asymmetry.", "They produce triangular arrangements."], answer: 1 },
+            { id: 37, question: "Reflect (2,-7) across the x-axis.", options: ["(2,7)", "(-2,7)", "(2,-7)", "(-2,-7)"], answer: 0 },
+            { id: 38, question: "A classmate argues that symmetry is useful only in mathematics. Which response best evaluates the claim?", options: ["Symmetry is used only in geometry.", "Symmetry appears only in artwork.", "Symmetry has applications in design, medicine, and science.", "Symmetry applies only to tessellations."], answer: 2 },
+            { id: 39, question: "What distinguishes a scalar matrix from a diagonal matrix?", options: ["Scalar matrices are rectangular.", "Scalar matrices have equal diagonal entries.", "Scalar matrices contain only ones.", "Scalar matrices are always zero matrices."], answer: 1 },
+            { id: 40, question: "Which row operation is valid?", options: ["Delete a row", "Delete a column", "Exchange two rows", "Square a row"], answer: 2 },
+            { id: 41, question: "Matrix A satisfies A<sup>2</sup> = A, while Matrix B satisfies A<sup>2</sup> = 0. Which statement is correct?", options: ["A is nilpotent; B is idempotent", "Both are symmetric", "A is idempotent; B is nilpotent", "Both are orthogonal"], answer: 2 },
+            { id: 42, question: "A doctor notices that one side of a patient's face differs significantly from the other side. Why might this observation be important?", options: ["It may indicate abnormal development.", "It helps determine scale factors.", "It identifies tessellations.", "It measures rotational symmetry."], answer: 0 },
+            { id: 43, question: "Determine the type of matrix having equal rows and columns.", options: ["Column", "Square", "Row", "Rectangular"], answer: 1 },
+            { id: 44, question: "A designer wants to create a floor pattern using only one regular polygon and no gaps. Which choice is most appropriate?", options: ["Regular pentagon", "Regular octagon", "Square", "Regular nonagon"], answer: 2 },
+            { id: 45, question: "Perform a glide reflection on (1,2): translate 4 units right then reflect across x-axis.", options: ["(5,-2)", "(5,2)", "(-5,2)", "(-5,-2)"], answer: 0 },
+            { id: 46, question: "A lung's branching structure shows smaller sections resembling larger sections. Which concept best explains this observation?", options: ["Tessellation", "Translation", "Fractal geometry", "Reflection"], answer: 2 },
+            { id: 47, question: "What is the order of the product of a 2×3 matrix and a 3×4 matrix?", options: ["2×4", "3×4", "2×3", "4×2"], answer: 0 },
+            { id: 48, question: "A matrix satisfies A = A<sup>T</sup>. What conclusion follows?", options: ["The matrix is skew-symmetric.", "The matrix is lower triangular.", "The matrix is symmetric.", "The matrix is nilpotent."], answer: 2 },
+            { id: 49, question: "A matrix has all entries below the diagonal equal to zero. Identify it.", options: ["Lower triangular", "Symmetric", "Upper triangular", "Scalar"], answer: 2 },
+            { id: 50, question: "A shape has rotational symmetry of order 8. Find its smallest angle of rotation.", options: ["45°", "60°", "90°", "30°"], answer: 0 },
+            { id: 51, question: "A figure translated then reflected differs from one reflected then translated. What is the best conclusion?", options: ["Transformations are always commutative.", "Sequence of transformations matters.", "Reflections have no effect.", "Translations change size."], answer: 1 },
+            { id: 52, question: "Identify the next term: 1, 1, 2, 3, 5, 8, 13, ___", options: ["18", "20", "21", "26"], answer: 2 },
+            { id: 53, question: "A matrix has all entries above the diagonal equal to zero. Identify it.", options: ["Upper triangular", "Lower triangular", "Identity", "Boolean"], answer: 1 },
+            { id: 54, question: "A researcher must organize attendance, grades, and subject data into a form that can be easily analyzed and manipulated mathematically. Which structure should be created?", options: ["Matrix table", "Narrative report", "Descriptive paragraph", "Chronological list"], answer: 0 },
+            { id: 55, question: "Find the transpose of a 2×5 matrix.", options: ["2×5", "5×2", "5×5", "2×2"], answer: 1 },
+            { id: 56, question: "A golden rectangle has a width of 10 cm. Which value is closest to its length?", options: ["14.20 cm", "15.50 cm", "16.18 cm", "17.80 cm"], answer: 2 },
+            { id: 57, question: "Determine the movement represented by vector [-2,4].", options: ["Left 2, up 4", "Right 2, up 4", "Left 4, up 2", "Left 2, down 4"], answer: 0 },
+            { id: 58, question: "A pattern repeats by sliding only. What type of symmetry is being analyzed?", options: ["Reflectional", "Rotational", "Translational", "Point symmetry"], answer: 2 },
+            { id: 59, question: "Identify the coefficient matrix of 2x + 3y = 8 and x - y = 1.", options: ["<span class='matrix-box'>[2 3; 1 -1]</span>", "<span class='matrix-box'>[8; 1]</span>", "<span class='matrix-box'>[x; y]</span>", "<span class='matrix-box'>[2 3 8; 1 -1 1]</span>"], answer: 0 },
+            { id: 60, question: "Point (4,3) reflected across the y-axis becomes:", options: ["(-4,3)", "(4,-3)", "(-3,4)", "(3,-4)"], answer: 0 }
+        ];
+
+        // Global State Variables
+        let activeExam = [];
+        let userAnswers = {};
+        let currentIdx = 0;
+        let itemSecondsRemaining = 45;
+        let itemTimerInterval = null;
+        let totalTimeSeconds = 0;
+        let totalTimerInterval = null;
+        let studentProfile = null;
+        let cheatStrikes = 0;
+        const MAX_STRIKES = 2;
+        const ITEM_TIME_LIMIT = 45;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedAttempt = localStorage.getItem('fm1_exam_submitted_v1');
+            const savedProfile = localStorage.getItem('fm1_student_profile');
+
+            if (savedProfile) {
+                try {
+                    const prof = JSON.parse(savedProfile);
+                    document.getElementById('studentName').value = prof.name || '';
+                } catch (e) {}
+            }
+
+            if (savedAttempt) {
+                try {
+                    showCompletedScreen(JSON.parse(savedAttempt));
+                } catch (e) {
+                    setupAntiCheat();
+                }
+            } else {
+                setupAntiCheat();
+            }
+        });
+
+        // Anti-Cheat Event Listeners
+        function setupAntiCheat() {
+            const triggerCheat = () => {
+                const examView = document.getElementById('examView');
+                if (examView.classList.contains('hidden') || localStorage.getItem('fm1_exam_submitted_v1')) return;
+
+                cheatStrikes++;
+                document.getElementById('strikeCount').innerText = cheatStrikes;
+                document.getElementById('cheatModal').classList.remove('hidden');
+
+                if (cheatStrikes >= MAX_STRIKES) {
+                    setTimeout(() => {
+                        dismissCheatWarning();
+                        showNotificationModal("Automatic Submission", "Maximum anti-cheat violations exceeded (tab switch / app exit). Your exam is being submitted.");
+                        submitExam(true);
+                    }, 600);
+                }
+            };
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) triggerCheat();
+            });
+
+            window.addEventListener('blur', () => {
+                triggerCheat();
+            });
+        }
+
+        function dismissCheatWarning() {
+            document.getElementById('cheatModal').classList.add('hidden');
+        }
+
+        function showNotificationModal(title, message, iconClass = "fa-circle-info", iconColor = "text-blue-400") {
+            document.getElementById('notifTitle').innerText = title;
+            document.getElementById('notifMessage').innerText = message;
+            const iconEl = document.getElementById('notifIcon');
+            iconEl.className = `fa-solid ${iconClass}`;
+            document.getElementById('notifIconBox').className = `w-14 h-14 bg-blue-500/20 ${iconColor} rounded-full flex items-center justify-center mx-auto mb-4 text-2xl`;
+            document.getElementById('notificationModal').classList.remove('hidden');
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notificationModal').classList.add('hidden');
+        }
+
+        function promptSubmitExam() {
+            const answeredCount = Object.keys(userAnswers).length;
+            const unanswered = activeExam.length - answeredCount;
+
+            let msg = "Are you sure you want to submit your examination?";
+            if (unanswered > 0) {
+                msg = `You have ${unanswered} unanswered question(s). Are you sure you want to submit?`;
+            }
+
+            document.getElementById('confirmSubmitText').innerText = msg;
+            document.getElementById('confirmSubmitModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmSubmitModal').classList.add('hidden');
+        }
+
+        function executeFinalSubmission() {
+            closeConfirmModal();
+            submitExam(false);
+        }
+
+        function handleSignup(event) {
+            event.preventDefault();
+            const nameInput = document.getElementById('studentName').value.trim();
+
+            if (!nameInput) {
+                showNotificationModal("Missing Information", "Please enter your name in the required format: Surname, First Name M.I.");
+                return;
+            }
+
+            studentProfile = {
+                name: nameInput,
+                startTime: new Date().toISOString()
+            };
+
+            localStorage.setItem('fm1_student_profile', JSON.stringify(studentProfile));
+
+            // Select 50 randomized questions with thoroughly shuffled options
+            activeExam = generateRandomExam(QUESTION_BANK, 50);
+            userAnswers = {};
+            currentIdx = 0;
+
+            // Show Top Header User Badge
+            document.getElementById('badgeStudentName').innerText = studentProfile.name;
+            document.getElementById('userBadge').classList.remove('hidden');
+
+            // Switch Views
+            document.getElementById('registrationView').classList.add('hidden');
+            document.getElementById('examView').classList.remove('hidden');
+
+            // Start Timers & Render Item
+            startTotalTimer();
+            renderQuestion();
+        }
+
+        // Array Shuffle Helper (Fisher-Yates)
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Pick 50 questions and randomize options for each item
+        function generateRandomExam(bank, count) {
+            const shuffledBank = shuffleArray(bank);
+            const selected = shuffledBank.slice(0, count);
+
+            return selected.map(item => {
+                const originalCorrectText = item.options[item.answer];
+                const shuffledOpts = shuffleArray(item.options);
+                const newCorrectIdx = shuffledOpts.indexOf(originalCorrectText);
+
+                return {
+                    id: item.id,
+                    question: item.question,
+                    options: shuffledOpts,
+                    answer: newCorrectIdx
+                };
+            });
+        }
+
+        function startTotalTimer() {
+            totalTimeSeconds = 0;
+            totalTimerInterval = setInterval(() => {
+                totalTimeSeconds++;
+            }, 1000);
+        }
+
+        function startItemTimer() {
+            clearInterval(itemTimerInterval);
+            itemSecondsRemaining = ITEM_TIME_LIMIT;
+            updateItemTimerUI();
+
+            itemTimerInterval = setInterval(() => {
+                itemSecondsRemaining--;
+                updateItemTimerUI();
+
+                if (itemSecondsRemaining <= 0) {
+                    clearInterval(itemTimerInterval);
+                    // Time limit hit for this item -> Auto advance to next question or auto-submit if last item
+                    if (currentIdx < activeExam.length - 1) {
+                        currentIdx++;
+                        renderQuestion();
+                    } else {
+                        submitExam(false);
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateItemTimerUI() {
+            const text = document.getElementById('timerText');
+            const bar = document.getElementById('itemTimerBar');
+            text.innerText = `${itemSecondsRemaining}s`;
+
+            const percentage = (itemSecondsRemaining / ITEM_TIME_LIMIT) * 100;
+            bar.style.width = `${percentage}%`;
+
+            if (itemSecondsRemaining <= 10) {
+                bar.className = "bg-red-500 h-full w-full timer-progress";
+                text.className = "text-xl font-bold font-mono text-red-500 animate-pulse";
+            } else {
+                bar.className = "bg-amber-400 h-full w-full timer-progress";
+                text.className = "text-xl font-bold font-mono text-amber-400";
+            }
+        }
+
+        function renderQuestion() {
+            startItemTimer();
+            const item = activeExam[currentIdx];
+
+            document.getElementById('currentQuestionNum').innerText = currentIdx + 1;
+            document.getElementById('questionText').innerHTML = item.question;
+
+            // Update overall progress bar
+            const overallPct = ((currentIdx + 1) / activeExam.length) * 100;
+            document.getElementById('overallProgressBar').style.width = `${overallPct}%`;
+
+            // Render options
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+
+            const optionLabels = ['A', 'B', 'C', 'D'];
+            item.options.forEach((optText, optIdx) => {
+                const isSelected = userAnswers[currentIdx] === optIdx;
+                const optBtn = document.createElement('button');
+                optBtn.type = 'button';
+                optBtn.onclick = () => selectOption(optIdx);
+                optBtn.className = `w-full text-left p-4 rounded-xl border flex items-center justify-between transition duration-200 ${
+                    isSelected 
+                        ? 'bg-blue-600/20 border-blue-500 text-blue-200 ring-2 ring-blue-500/50' 
+                        : 'bg-slate-900/60 border-slate-700 hover:border-slate-500 text-slate-200'
+                }`;
+
+                optBtn.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
+                            isSelected ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-400 border border-slate-700'
+                        }">${optionLabels[optIdx]}</span>
+                        <span class="text-sm md:text-base pt-0.5">${optText}</span>
+                    </div>
+                    ${isSelected ? '<i class="fa-solid fa-circle-check text-blue-400 text-lg"></i>' : ''}
+                `;
+                container.appendChild(optBtn);
+            });
+
+            // Update Navigation Button States
+            document.getElementById('prevBtn').disabled = currentIdx === 0;
+            document.getElementById('prevBtn').style.opacity = currentIdx === 0 ? '0.4' : '1';
+
+            if (currentIdx === activeExam.length - 1) {
+                document.getElementById('nextBtn').classList.add('hidden');
+                document.getElementById('submitBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('nextBtn').classList.remove('hidden');
+                document.getElementById('submitBtn').classList.add('hidden');
+            }
+        }
+
+        function selectOption(optIdx) {
+            userAnswers[currentIdx] = optIdx;
+            renderQuestion();
+        }
+
+        function navigateQuestion(direction) {
+            const newIdx = currentIdx + direction;
+            if (newIdx >= 0 && newIdx < activeExam.length) {
+                currentIdx = newIdx;
+                renderQuestion();
+            }
+        }
+
+        function submitExam(isForcedByCheat = false) {
+            clearInterval(itemTimerInterval);
+            clearInterval(totalTimerInterval);
+
+            // Calculate Final Score
+            let correctCount = 0;
+            activeExam.forEach((item, idx) => {
+                if (userAnswers[idx] === item.answer) {
+                    correctCount++;
+                }
+            });
+
+            const percentage = ((correctCount / activeExam.length) * 100).toFixed(1);
+            const minutes = Math.floor(totalTimeSeconds / 60);
+            const seconds = totalTimeSeconds % 60;
+            const timeTakenFormatted = `${minutes}m ${seconds}s`;
+            const dateTakenFormatted = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+
+            const resultPayload = {
+                name: studentProfile ? studentProfile.name : "Anonymous Student",
+                score: `${correctCount} / ${activeExam.length}`,
+                rawScore: correctCount,
+                totalQuestions: activeExam.length,
+                percentage: `${percentage}%`,
+                timeTaken: timeTakenFormatted,
+                dateTaken: dateTakenFormatted,
+                isForced: isForcedByCheat
+            };
+
+            // Save locally to prevent re-attempts
+            localStorage.setItem('fm1_exam_submitted_v1', JSON.stringify(resultPayload));
+
+            // Hide Exam & Modals
+            document.getElementById('examView').classList.add('hidden');
+            document.getElementById('cheatModal').classList.add('hidden');
+            document.getElementById('confirmSubmitModal').classList.add('hidden');
+
+            // Show Results Summary
+            showCompletedScreen(resultPayload);
+
+            // Automatically transmit score to Google Apps Script
+            sendScoreToGoogleSheet(resultPayload);
+        }
+
+        function showCompletedScreen(payload) {
+            document.getElementById('registrationView').classList.add('hidden');
+            document.getElementById('examView').classList.add('hidden');
+            document.getElementById('resultsView').classList.remove('hidden');
+
+            document.getElementById('resultStudentName').innerText = payload.name;
+            document.getElementById('finalScore').innerText = payload.score;
+            document.getElementById('finalPercentage').innerText = payload.percentage;
+            document.getElementById('finalTimeTaken').innerText = payload.timeTaken;
+            document.getElementById('statusTag').innerText = "Submitted";
+            document.getElementById('statusTag').className = "text-emerald-400 font-bold";
+
+            if (studentProfile) {
+                document.getElementById('badgeStudentName').innerText = studentProfile.name;
+                document.getElementById('userBadge').classList.remove('hidden');
+            }
+        }
+
+        async function sendScoreToGoogleSheet(payload) {
+            const statusBox = document.getElementById('cloudStatusBox');
+            const statusText = document.getElementById('cloudStatusText');
+
+            try {
+                const postData = {
+                    name: payload.name,
+                    score: payload.score,
+                    percentage: payload.percentage,
+                    timeTaken: payload.timeTaken,
+                    dateTaken: payload.dateTaken
+                };
+
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(postData)
+                });
+
+                statusBox.className = "p-3 rounded-xl border text-xs font-semibold flex items-center justify-center space-x-2 bg-emerald-950/40 border-emerald-700 text-emerald-300";
+                statusText.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-emerald-400 text-sm"></i> <span>Score successfully transmitted to Google Sheet!</span>`;
+            } catch (err) {
+                console.error("Score dispatch error:", err);
+                statusBox.className = "p-3 rounded-xl border text-xs font-semibold flex items-center justify-center space-x-2 bg-red-950/40 border-red-700 text-red-300";
+                statusText.innerText = "Network issue: Unable to automatically transmit score to Google Sheet.";
+            }
+        }
+    </script>
+</body>
+</html>
